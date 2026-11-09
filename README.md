@@ -1,119 +1,74 @@
-# NeuralEdge-IDS — Federated IoT Intrusion Detection Under Concept Drift
+# NeuralEdge-IDS
 
-## Run with Docker
+A reproducible comparison of centralized and federated intrusion-detection training on non-IID synthetic IoT flow windows, including an evaluation on a generated benign-behavior shift.
+
+[![CI](https://github.com/harshacreate/NeuralEdge-IDS/actions/workflows/ci.yml/badge.svg)](https://github.com/harshacreate/NeuralEdge-IDS/actions/workflows/ci.yml)
+
+## Problem / why it matters
+
+IoT devices have different traffic baselines, and benign behavior can shift after updates or operational changes. This experiment asks how two small classifiers behave when training data is split across device families and then evaluated on a separately generated shifted distribution. It uses no packet capture or live network traffic.
+
+## What I built
+
+The simulator produces per-window flow statistics for cameras, thermostats, locks, and hubs. A centralized NumPy logistic-regression model trains on pooled rows; a federated path trains on per-device shards and averages model updates. Both paths use the same fixed, pre-agreed normalization values, and report detection rate, false-alarm rate, F1, and transmitted float counts.
+
+```mermaid
+flowchart LR
+  A[Synthetic device profiles] --> B[Flow windows and labels]
+  B --> C[Random sample split]
+  C --> D[Centralized logistic regression]
+  C --> E[Per-device shards]
+  E --> F[Local updates and FedAvg]
+  D --> G[In-distribution and drift metrics]
+  F --> G
+```
+
+### Dashboard
+
+![NeuralEdge-IDS dashboard comparing centralized and federated synthetic evaluation](screenshots/dashboard.jpg)
+
+## Results / evaluation
+
+**SYNTHETIC only.** Measured locally with `python3 -m experiments.run` (seed 0):
+
+| Model / split | Detection rate | False-alarm rate | F1 | Floats exchanged |
+|---|---:|---:|---:|---:|
+| Centralized, in-distribution | 0.979 | 0.000 | 0.989 | 9,000 |
+| Centralized, generated drift | 0.993 | 0.060 | 0.931 | 9,000 |
+| Federated, in-distribution | 0.979 | 0.000 | 0.989 | 1,400 |
+| Federated, generated drift | 0.993 | 0.067 | 0.924 | 1,400 |
+
+The communication count is a count of floating-point values, not bytes or total network overhead. Tests: 7 passed.
+
+## Design decisions and lessons to discuss
+
+- Per-device shards make the training data non-IID by construction. The random row split still places each simulated device family on both sides, so the score does not represent generalization to unseen devices.
+- Fixed, pre-agreed scaling avoids pooling raw rows just to fit a scaler; the values are hand-set stand-ins, not learned from a real deployment.
+- Reporting both false-alarm rate and F1 keeps the drift result interpretable when a detector catches attacks but also alarms on shifted benign traffic.
+- Federated updates reduce the reported float count in this setup. This is not a privacy guarantee: there is no differential privacy, secure aggregation, or gradient-leakage analysis.
+
+## Run it
+
+### Docker dashboard
 
 ```bash
-docker compose up --build -d      # then open http://localhost:8094
-docker compose down               # stop
+docker compose up --build
+# Open http://127.0.0.1:8094
 ```
 
-This repository is standalone; the commands below build and run this project on its own.
-
-A study of how an IoT network intrusion detector behaves when the world doesn't
-stay still: when device behaviour **drifts** over time, and when training data is
-**split across devices** instead of pooled in one place. It trains a detector two
-ways — a single **centralized** model and a **federated** model (FedAvg) — and
-reports detection quality, false-alarm rate, and communication cost for each,
-in-distribution and under concept drift.
-
-Everything runs on a **synthetic** IoT traffic generator, so the experiment is
-fully reproducible offline and needs no sensitive capture data.
-
-## The question it answers
-
-IoT fleets are the hard case for intrusion detection:
-
-- **Non-IID data** — a camera, a thermostat and a smart lock have completely
-  different "normal" traffic, so a model trained on one doesn't transfer cleanly.
-- **Concept drift** — firmware updates and usage changes shift what "normal"
-  looks like, and a stale model starts crying wolf.
-- **Privacy / bandwidth** — shipping every device's raw traffic to a central
-  trainer is expensive and sensitive.
-
-This project measures those trade-offs instead of assuming them.
-
-## What it compares
-
-| | Centralized | Federated (FedAvg) |
-|---|---|---|
-| Data movement | raw samples pooled on a server | only model parameters exchanged |
-| Training | one model on all data | per-device local training + weighted averaging |
-| Reported | detection rate, false-alarm rate, F1 | same, plus communication cost |
-
-Both are evaluated **in-distribution** and on a **drifted** test set where benign
-baselines have shifted toward the attack region.
-
-**Honest communication accounting.** For the federated comm cost (model updates
-only) to be meaningful, the federated path must not quietly move raw data for
-anything else. Feature normalization is therefore a **pre-agreed scaler**
-(`AGREED_SCALER_MEAN/STD` in `ids/dataset.py`, published to every device in
-advance from domain knowledge) rather than one fit by pooling all devices' rows
-on a server. The centralized baseline is still allowed to pool — that's its
-nature — and its comm cost reflects shipping the raw samples.
-
-> Federated learning is treated here as an experiment in **robustness and
-> communication cost**, not as a privacy guarantee in itself — parameter updates
-> can still leak information, which this project does not attempt to prevent.
-
-## Features & attacks (synthetic)
-
-Each record is a window of flow statistics: `packet_rate`, `mean_payload`,
-`unique_dst_ports`, `failed_conn_ratio`, `inter_arrival_var`, `outbound_ratio`.
-Four device types (camera, thermostat, lock, hub) each have their own benign
-baseline. Two attack families are injected: `flood` (volumetric/DDoS-style) and
-`scan` (port/host scanning). Class distributions deliberately **overlap**, so
-detection is a multi-feature decision rather than a single threshold.
-
-## Layout
-
-```
-ids/
-  dataset.py      synthetic per-device traffic, non-IID shards, concept drift
-  model.py        numpy logistic-regression detector (params = flat vector)
-  centralized.py  pooled-data baseline
-  federated.py    FedAvg across devices + honest communication accounting
-                  (pre-agreed scaler; no raw rows pooled)
-  evaluate.py     detection rate, false-alarm rate, precision, F1
-experiments/
-  run.py          the comparison report (+ optional matplotlib plot)
-tests/            pytest over data, models, metrics
-```
-
-## Quick start
+### Local tests and experiment
 
 ```bash
-make setup     # numpy, matplotlib, pytest
-make run       # centralized vs federated comparison report
-make plot      # same, plus out/comparison.png
-make test      # pytest
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+make test
+make run
+make plot  # optional; writes out/comparison.png
 ```
 
-Example `make run` output:
+## Limitations & next steps
 
-```
-[centralized]
-  in-distribution       DR=0.979  FAR=0.000  F1=0.989
-  under concept drift   DR=0.993  FAR=0.060  F1=0.931
-  communication (floats): 9000  (raw samples shipped to server)
-[federated: 25 rounds, non-IID per-device shards]
-  in-distribution       DR=0.979  FAR=0.000  F1=0.989
-  under concept drift   DR=0.993  FAR=0.067  F1=0.924
-  communication (floats): 1400  (only model params exchanged)
-federated / centralized comm cost: 0.156x
-```
+The traffic and drift are generated, the feature set is small, and the random split includes all device families in train and test. Model updates are not protected against inference or tampering. Next steps include a device-group holdout, calibration and confidence intervals over multiple seeds, and a documented public dataset adapter with licensing and feature mapping.
 
-Reading it: both detect attacks well in-distribution; **concept drift raises the
-false-alarm rate** for both; the federated model is slightly behind centralized
-on the non-IID shards but moves a small fraction of the data.
-
-## Knobs to explore
-
-- `make_dataset(..., drift=...)` — how far the world has moved.
-- `attack_fraction` — class balance.
-- `train_federated(rounds=, local_epochs=)` — the accuracy/communication trade-off.
-- device profiles in `ids/dataset.py` — make the fleet more or less heterogeneous.
-
-## Scope & safety
-
-The detector is trained and evaluated entirely on self-generated synthetic
-traffic. No real network is captured, scanned, or attacked.
+The project does not capture, generate, or transmit live network traffic.
