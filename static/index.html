@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuralEdge-IDS</title>
+<style>
+  :root{
+    --bg:#0a0f24; --panel:rgba(255,255,255,.045); --line:rgba(255,255,255,.12);
+    --ink:#eef2ff; --muted:#9fb0d8; --c1:#06b6d4; --c2:#7c3aed; --c3:#2563eb; --pink:#ec4899;
+    --ok:#34d399; --bad:#fb7185;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);background:
+      radial-gradient(1000px 520px at 85% -5%,rgba(124,58,237,.35),transparent 55%),
+      radial-gradient(900px 500px at 5% 10%,rgba(6,182,212,.28),transparent 55%),var(--bg)}
+  .hero{max-width:1100px;margin:0 auto;padding:60px 24px 20px;text-align:center}
+  .logo{width:72px;height:72px;margin:0 auto 20px;display:block;filter:drop-shadow(0 8px 24px rgba(6,182,212,.5))}
+  .hero h1{margin:0;font-size:clamp(38px,6vw,60px);font-weight:800;letter-spacing:-.03em;
+    background:linear-gradient(100deg,#67e8f9,#818cf8 45%,#f0abfc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .tag{color:var(--muted);font-size:17px;margin:14px auto 0;max-width:640px}
+  .wrap{max-width:1100px;margin:0 auto;padding:16px 18px 80px}
+  .glass{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px;backdrop-filter:blur(14px);
+    box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .controls{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:end}
+  @media(max-width:820px){.controls{grid-template-columns:1fr 1fr}}
+  label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .val{color:#67e8f9;font-weight:700;float:right}
+  input[type=range]{width:100%;height:5px;border-radius:5px;appearance:none;background:linear-gradient(90deg,var(--c1),var(--c2))}
+  input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer}
+  .runbtn{grid-column:1/-1;margin-top:6px;background:linear-gradient(100deg,var(--c1),var(--c2));border:0;color:#fff;font-weight:800;
+    font-size:15.5px;padding:15px;border-radius:16px;cursor:pointer;box-shadow:0 12px 34px rgba(124,58,237,.4);transition:transform .06s}
+  .runbtn:active{transform:translateY(1px)}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px}
+  @media(max-width:700px){.tiles{grid-template-columns:1fr 1fr}}
+  .tile{border-radius:18px;padding:18px;color:#fff;position:relative;overflow:hidden}
+  .tile.a{background:linear-gradient(135deg,#0891b2,#06b6d4)} .tile.b{background:linear-gradient(135deg,#6d28d9,#7c3aed)}
+  .tile.c{background:linear-gradient(135deg,#1d4ed8,#3b82f6)} .tile.d{background:linear-gradient(135deg,#be185d,#ec4899)}
+  .tile .n{font-size:30px;font-weight:850;letter-spacing:-.02em} .tile .l{font-size:11px;opacity:.85;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+  h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#a5b4fc;margin:34px 0 14px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.row2{grid-template-columns:1fr}}
+  img{width:100%;border-radius:16px}
+  .cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;font-size:13px}
+  .cm .cell{border-radius:10px;padding:12px;text-align:center;font-weight:700}
+  .cm .h{color:var(--muted);font-weight:600;display:flex;align-items:center;justify-content:center;font-size:11.5px}
+  .tp{background:rgba(52,211,153,.2);color:#6ee7b7} .tn{background:rgba(52,211,153,.12);color:#6ee7b7}
+  .fp{background:rgba(251,113,133,.2);color:#fda4af} .fn{background:rgba(251,113,133,.2);color:#fda4af}
+  table{width:100%;border-collapse:collapse;font-size:13.5px} th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--muted)} .bar{height:7px;border-radius:7px;background:linear-gradient(90deg,var(--c1),var(--c2))}
+  .muted{color:var(--muted)} .empty{color:var(--muted);text-align:center;padding:30px}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:s .7s linear infinite;vertical-align:-2px}
+  @keyframes s{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <svg class="logo" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="n" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#67e8f9"/><stop offset=".5" stop-color="#818cf8"/><stop offset="1" stop-color="#f0abfc"/></linearGradient></defs>
+    <g stroke="url(#n)" stroke-width="2.2"><path d="M20 20L52 36M20 52L52 36M20 20v32M52 36h0"/></g>
+    <g fill="url(#n)"><circle cx="20" cy="20" r="6"/><circle cx="20" cy="52" r="6"/><circle cx="52" cy="36" r="7.5"/></g>
+    <circle cx="52" cy="36" r="12" stroke="url(#n)" stroke-width="1.5" opacity=".4" fill="none"/>
+  </svg>
+  <h1>NeuralEdge</h1>
+  <div class="tag">Federated IoT intrusion detection under changing conditions. Move the sliders, retrain, and
+    watch detection, false alarms and communication cost respond — centralized vs federated.</div>
+</div>
+
+<div class="wrap">
+  <div class="glass">
+    <div class="controls">
+      <div><label>Concept drift <span class="val" id="vDrift">0.6</span></label>
+        <input type="range" id="drift" min="0" max="1.5" step="0.1" value="0.6" oninput="vDrift.textContent=(+this.value).toFixed(1)"></div>
+      <div><label>Attack rate <span class="val" id="vAtt">0.30</span></label>
+        <input type="range" id="attack" min="0.1" max="0.5" step="0.05" value="0.3" oninput="vAtt.textContent=(+this.value).toFixed(2)"></div>
+      <div><label>Federated rounds <span class="val" id="vR">25</span></label>
+        <input type="range" id="rounds" min="3" max="40" step="1" value="25" oninput="vR.textContent=this.value"></div>
+      <div><label>Dropped devices <span class="val" id="vD">0</span></label>
+        <input type="range" id="dropout" min="0" max="3" step="1" value="0" oninput="vD.textContent=this.value"></div>
+      <button class="runbtn" id="runBtn" onclick="run()">Train &amp; compare</button>
+    </div>
+  </div>
+
+  <div id="out" class="empty" style="margin-top:22px">Set your scenario and press “Train &amp; compare”.</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+async function run(){
+  const b=$('runBtn'); b.innerHTML='<span class="spin"></span> Training…'; b.disabled=true;
+  const body={drift:+$('drift').value,attack:+$('attack').value,rounds:+$('rounds').value,dropout:+$('dropout').value,seed:0};
+  const r=await (await fetch('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+  b.innerHTML='Train &amp; compare'; b.disabled=false; render(r);
+}
+function cm(c){
+  return `<div class="cm">
+    <div></div><div class="h">pred attack</div><div class="h">pred benign</div>
+    <div class="h">actual attack</div><div class="cell tp">${c.tp}<br><small>TP</small></div><div class="cell fn">${c.fn}<br><small>FN</small></div>
+    <div class="h">actual benign</div><div class="cell fp">${c.fp}<br><small>FP</small></div><div class="cell tn">${c.tn}<br><small>TN</small></div>
+  </div>`;
+}
+function render(r){
+  const cd=r.centralized.under_drift, fd=r.federated.under_drift;
+  const tiles=[
+    ['a',(cd.detection_rate).toFixed(2),'Central detection (drift)'],
+    ['b',(fd.detection_rate).toFixed(2),'Federated detection (drift)'],
+    ['c',(fd.false_alarm_rate).toFixed(2),'Federated false-alarm (drift)'],
+    ['d',r.comm.ratio+'×','Fed / central comm cost'],
+  ].map(([k,n,l])=>`<div class="tile ${k}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+  const pd=r.per_device.map(d=>`<tr><td>${d.device}</td><td>${d.n}</td>
+     <td><div class="bar" style="width:${Math.round(d.detection_rate*100)}%"></div></td>
+     <td>${(d.detection_rate).toFixed(2)}</td><td>${(d.false_alarm_rate).toFixed(2)}</td></tr>`).join('');
+  const drop = r.dropped_devices.length? `<span class="muted"> · dropped: ${r.dropped_devices.join(', ')}</span>`:'';
+  $('out').innerHTML=`
+    <div class="tiles">${tiles}</div>
+    <h2>Centralized vs federated — by condition</h2>
+    <div class="glass"><img src="data:image/png;base64,${r.chart}" alt="comparison"></div>
+    <h2>Confusion matrices (in-distribution test)</h2>
+    <div class="row2">
+      <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#c4b5fd">Centralized</div>${cm(r.confusion.centralized)}</div>
+      <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#67e8f9">Federated</div>${cm(r.confusion.federated)}</div>
+    </div>
+    <h2>Per-device results — federated model (${r.rounds} rounds)${drop}</h2>
+    <div class="glass"><table><tr><th>device</th><th>samples</th><th>detection</th><th>rate</th><th>false alarm</th></tr>${pd}</table></div>`;
+}
+</script>
+</body>
+</html>

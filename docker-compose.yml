@@ -1,0 +1,15 @@
+services:
+  neuraledge:
+    build: .
+    image: neuraledge-ids:local
+    container_name: neuraledge-ids
+    ports:
+      - "127.0.0.1:8094:8000"
+    environment:
+      MPLCONFIGDIR: /tmp/mpl
+    tmpfs:
+      - /tmp:size=64m
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    restart: unless-stopped
