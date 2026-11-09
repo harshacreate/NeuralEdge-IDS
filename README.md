@@ -40,7 +40,7 @@ flowchart LR
 
 The communication count is a count of floating-point values, not bytes or total network overhead. Tests: 7 passed.
 
-## Design decisions and lessons to discuss
+## What I learned / design decisions I made
 
 - Per-device shards make the training data non-IID by construction. The random row split still places each simulated device family on both sides, so the score does not represent generalization to unseen devices.
 - Fixed, pre-agreed scaling avoids pooling raw rows just to fit a scaler; the values are hand-set stand-ins, not learned from a real deployment.
