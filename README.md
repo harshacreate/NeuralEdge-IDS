@@ -25,7 +25,7 @@ flowchart LR
 
 ### Dashboard
 
-![NeuralEdge-IDS dashboard comparing centralized and federated synthetic evaluation](screenshots/dashboard.jpg)
+![NeuralEdge-IDS dashboard comparing centralized and federated synthetic evaluation](docs/screenshots/dashboard.jpg)
 
 ## Results / evaluation
 
@@ -66,6 +66,12 @@ make test
 make run
 make plot  # optional; writes out/comparison.png
 ```
+
+## Project documents
+
+- [Project overview](PROJECT_OVERVIEW.md) — scope and system design.
+- [Learning guide](LEARNING_GUIDE.md) — concepts behind the project.
+- [Project walkthrough](PROJECT_WALKTHROUGH.md) — setup, code map, and run instructions.
 
 ## Limitations & next steps
 
