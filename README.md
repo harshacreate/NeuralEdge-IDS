@@ -69,9 +69,9 @@ make plot  # optional; writes out/comparison.png
 
 ## Project documents
 
-- [Project overview](PROJECT_OVERVIEW.md) — scope and system design.
-- [Learning guide](LEARNING_GUIDE.md) — concepts behind the project.
-- [Project walkthrough](PROJECT_WALKTHROUGH.md) — setup, code map, and run instructions.
+- [Project overview](docs/PROJECT_OVERVIEW.md) — scope and system design.
+- [Learning guide](docs/LEARNING_GUIDE.md) — concepts behind the project.
+- [Project walkthrough](docs/PROJECT_WALKTHROUGH.md) — setup, code map, and run instructions.
 
 ## Limitations & next steps
 
