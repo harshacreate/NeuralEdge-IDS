@@ -63,26 +63,25 @@
     <circle cx="52" cy="36" r="12" stroke="url(#n)" stroke-width="1.5" opacity=".4" fill="none"/>
   </svg>
   <h1>NeuralEdge</h1>
-  <div class="tag">Federated IoT intrusion detection under changing conditions. Move the sliders, retrain, and
-    watch detection, false alarms and communication cost respond — centralized vs federated.</div>
+  <div class="tag">Compare two ways to train a model that finds attacks in sample device traffic. Change the test settings and see how many attacks are found, how many normal events are flagged, and how much data is sent.</div>
 </div>
 
 <div class="wrap">
   <div class="glass">
     <div class="controls">
-      <div><label>Concept drift <span class="val" id="vDrift">0.6</span></label>
+      <div><label>Change in normal traffic <span class="val" id="vDrift">0.6</span></label>
         <input type="range" id="drift" min="0" max="1.5" step="0.1" value="0.6" oninput="vDrift.textContent=(+this.value).toFixed(1)"></div>
-      <div><label>Attack rate <span class="val" id="vAtt">0.30</span></label>
+      <div><label>Share of test events that are attacks <span class="val" id="vAtt">0.30</span></label>
         <input type="range" id="attack" min="0.1" max="0.5" step="0.05" value="0.3" oninput="vAtt.textContent=(+this.value).toFixed(2)"></div>
-      <div><label>Federated rounds <span class="val" id="vR">25</span></label>
+      <div><label>Shared training rounds <span class="val" id="vR">25</span></label>
         <input type="range" id="rounds" min="3" max="40" step="1" value="25" oninput="vR.textContent=this.value"></div>
-      <div><label>Dropped devices <span class="val" id="vD">0</span></label>
+      <div><label>Devices left out <span class="val" id="vD">0</span></label>
         <input type="range" id="dropout" min="0" max="3" step="1" value="0" oninput="vD.textContent=this.value"></div>
       <button class="runbtn" id="runBtn" onclick="run()">Train &amp; compare</button>
     </div>
   </div>
 
-  <div id="out" class="empty" style="margin-top:22px">Set your scenario and press “Train &amp; compare”.</div>
+  <div id="out" class="empty" style="margin-top:22px">Set the test and press “Train &amp; compare”.</div>
 </div>
 
 <script>
@@ -95,18 +94,18 @@ async function run(){
 }
 function cm(c){
   return `<div class="cm">
-    <div></div><div class="h">pred attack</div><div class="h">pred benign</div>
-    <div class="h">actual attack</div><div class="cell tp">${c.tp}<br><small>TP</small></div><div class="cell fn">${c.fn}<br><small>FN</small></div>
-    <div class="h">actual benign</div><div class="cell fp">${c.fp}<br><small>FP</small></div><div class="cell tn">${c.tn}<br><small>TN</small></div>
+    <div></div><div class="h">Marked as attack</div><div class="h">Marked as normal</div>
+    <div class="h">Was an attack</div><div class="cell tp">${c.tp}<br><small>Found</small></div><div class="cell fn">${c.fn}<br><small>Missed</small></div>
+    <div class="h">Was normal</div><div class="cell fp">${c.fp}<br><small>Wrong alert</small></div><div class="cell tn">${c.tn}<br><small>Left alone</small></div>
   </div>`;
 }
 function render(r){
   const cd=r.centralized.under_drift, fd=r.federated.under_drift;
   const tiles=[
-    ['a',(cd.detection_rate).toFixed(2),'Central detection (drift)'],
-    ['b',(fd.detection_rate).toFixed(2),'Federated detection (drift)'],
-    ['c',(fd.false_alarm_rate).toFixed(2),'Federated false-alarm (drift)'],
-    ['d',r.comm.ratio+'×','Fed / central comm cost'],
+    ['a',(cd.detection_rate).toFixed(2),'One model: attacks found after traffic changes'],
+    ['b',(fd.detection_rate).toFixed(2),'Shared model: attacks found after traffic changes'],
+    ['c',(fd.false_alarm_rate).toFixed(2),'Shared model: wrong alerts after traffic changes'],
+    ['d',r.comm.ratio+'×','Data sent ratio (shared / one model)'],
   ].map(([k,n,l])=>`<div class="tile ${k}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
   const pd=r.per_device.map(d=>`<tr><td>${d.device}</td><td>${d.n}</td>
      <td><div class="bar" style="width:${Math.round(d.detection_rate*100)}%"></div></td>
@@ -114,15 +113,15 @@ function render(r){
   const drop = r.dropped_devices.length? `<span class="muted"> · dropped: ${r.dropped_devices.join(', ')}</span>`:'';
   $('out').innerHTML=`
     <div class="tiles">${tiles}</div>
-    <h2>Centralized vs federated — by condition</h2>
+    <h2>Compare both training methods</h2>
     <div class="glass"><img src="data:image/png;base64,${r.chart}" alt="comparison"></div>
-    <h2>Confusion matrices (in-distribution test)</h2>
+    <h2>Detailed results on the usual test data</h2>
     <div class="row2">
       <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#c4b5fd">Centralized</div>${cm(r.confusion.centralized)}</div>
       <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#67e8f9">Federated</div>${cm(r.confusion.federated)}</div>
     </div>
-    <h2>Per-device results — federated model (${r.rounds} rounds)${drop}</h2>
-    <div class="glass"><table><tr><th>device</th><th>samples</th><th>detection</th><th>rate</th><th>false alarm</th></tr>${pd}</table></div>`;
+    <h2>Results for each device — shared model (${r.rounds} rounds)${drop}</h2>
+    <div class="glass"><table><tr><th>Device</th><th>Examples</th><th>Attacks found</th><th>Found rate</th><th>Wrong alert rate</th></tr>${pd}</table></div>`;
 }
 </script>
 </body>
