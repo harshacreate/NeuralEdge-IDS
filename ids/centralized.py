@@ -1,4 +1,4 @@
-"""Centralized baseline: pool every device's data and train one model."""
+"""Train one model using traffic data from every device."""
 
 from __future__ import annotations
 

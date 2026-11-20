@@ -1,16 +1,8 @@
-"""Federated training (FedAvg) across devices, with communication accounting.
-
-Each round:
-  1. the server broadcasts the current global parameters to every device,
-  2. each device runs a few local epochs on its own (non-IID) data,
-  3. the server averages the returned parameters, weighted by device sample count.
-
-Raw traffic never leaves a device - only parameter vectors are exchanged. We
-account for the communication cost (floats transferred) so it can be compared
-against the centralized baseline's cost of shipping raw data to one place.
-
-NB: federated learning here is studied as an *experiment in robustness and
-cost*, not treated as a privacy guarantee on its own.
+"""Train a model across devices with FedAvg. The server sends the model values to each device.
+Each device trains on its own traffic and sends its updated values back. The server averages
+those values. Raw traffic stays on each device. This code counts how many numeric values are
+sent so the cost can be compared with centralized training. Keeping raw traffic local does
+not by itself guarantee privacy.
 """
 
 from __future__ import annotations
@@ -33,12 +25,8 @@ class FedResult:
 
 
 def agreed_scaler() -> Scaler:
-    """The pre-agreed normalization shared with every device in advance.
-
-    No raw feature rows are pooled to build this. It comes from published domain
-    ranges (`AGREED_SCALER_MEAN/STD`). That is the honest choice for a federated
-    setup: the whole point is that raw data never leaves a device, so the scaler
-    cannot be fit by gathering everyone's rows on a server.
+    """Use the same scaling values on every device. These values come from published ranges, not
+    raw device traffic. This lets devices keep their traffic data on their own computers.
     """
     return Scaler(AGREED_SCALER_MEAN.copy(), AGREED_SCALER_STD.copy())
 
@@ -80,5 +68,5 @@ def train_federated(
 
 
 def centralized_comm_cost(train: Dataset) -> int:
-    """Floats a centralized approach must move: every raw sample to the server."""
+    """Count the raw traffic values a centralized setup sends to the server."""
     return int(train.X.size)

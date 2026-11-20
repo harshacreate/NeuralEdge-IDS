@@ -1,8 +1,5 @@
-"""Detection metrics.
-
-detection_rate (recall) - fraction of attacks correctly flagged
-false_alarm_rate (FPR)  - fraction of benign traffic wrongly flagged
-precision, f1           - standard summary metrics
+"""Score the detector. Detection rate shows how many attacks it finds. False alarm rate shows
+how much safe traffic it marks as an attack. Precision and F1 give two more summary scores.
 """
 
 from __future__ import annotations

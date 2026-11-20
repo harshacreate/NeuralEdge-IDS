@@ -1,24 +1,8 @@
-"""Synthetic IoT network-traffic generator.
-
-Each record is a short window of flow statistics for one device. Devices have
-different normal patterns (a camera streams; a lock is mostly idle), which
-makes the data differ across devices. This is the hard case for
-federated learning.
-
-Attacks are injected as two families:
-  * flood  - volumetric DDoS-style bursts (high packet rate, low payload variety)
-  * scan   - port/host scanning (many unique destination ports, short flows)
-
-`concept_drift` shifts the benign baseline over time (e.g. a firmware update
-changes normal behaviour) so detectors can be tested under changing conditions.
-
-Features (all per-window):
-  0 packet_rate          packets/sec
-  1 mean_payload         mean payload bytes
-  2 unique_dst_ports     distinct destination ports
-  3 failed_conn_ratio    fraction of failed connections
-  4 inter_arrival_var    variance of packet inter-arrival time
-  5 outbound_ratio       outbound/total byte ratio
+"""Make sample network traffic for different IoT devices. Each device has its own normal
+pattern. Add flood and scan traffic to model attacks. The data can also change over time to
+test how the detectors handle new normal patterns. Each record has six values: packet rate,
+average packet size, number of destination ports, failed connection rate, time between
+packets, and outbound traffic share.
 """
 
 from __future__ import annotations
@@ -38,18 +22,14 @@ FEATURES = [
 ]
 N_FEATURES = len(FEATURES)
 
-# Pre-agreed feature normalization, published to every device IN ADVANCE from
-# domain knowledge of plausible IoT flow ranges. Federated training uses this so
-# that NO raw feature rows have to be pooled on a server just to fit a scaler --
-# which keeps the reported communication cost (model updates only) honest.
-# The values are round-number stand-ins for the real pooled statistics.
+# Scaling values sent to every device before training. They come from known IoT
+# traffic ranges, not raw traffic. This avoids sending raw data just to set the
+# scale. The numbers are simple examples based on pooled data.
 AGREED_SCALER_MEAN = np.array([90.0, 300.0, 6.5, 0.12, 1.2, 0.6])
 AGREED_SCALER_STD = np.array([100.0, 310.0, 8.5, 0.17, 1.2, 0.2])
 
-# Per-device benign baselines: (mean, std) per feature.
-# Spreads are wide enough that benign traffic overlaps the attack region in some
-# features, so no single limit separates the classes. The detector has to
-# combine features, and the centralized/federated gap becomes visible.
+# Normal traffic ranges for each device. Some safe and attack traffic overlaps,
+# so no single value separates them. The detector must use several values.
 DEVICE_PROFILES: Dict[str, np.ndarray] = {
     # packet_rate, mean_payload, uniq_ports, failed_ratio, ia_var, outbound
     "camera":     np.array([[120, 45], [900, 180], [4, 2.0], [0.03, 0.02], [0.5, 0.3], [0.80, 0.09]]),
@@ -75,9 +55,9 @@ def _sample_benign(profile: np.ndarray, n: int, rng: np.random.Generator,
     means = profile[:, 0].copy()
     stds = profile[:, 1].copy()
     if drift:
-        # Concept drift: normal behaviour shifts toward the attack region
-        # (busier devices: more packets, more distinct ports, more retries).
-        # A detector trained before the drift will raise more false alarms.
+        # Normal traffic changes over time. Devices may send more packets,
+        # contact more ports, or retry more often. An older detector may then
+        # raise more false alarms.
         means = means * (1.0 + drift * np.array([1.2, 0.2, 1.5, 2.0, 0.3, 0.1]))
         stds = stds * (1.0 + drift * 0.4)
     x = rng.normal(means, stds, size=(n, N_FEATURES))
@@ -85,9 +65,8 @@ def _sample_benign(profile: np.ndarray, n: int, rng: np.random.Generator,
 
 
 def _sample_attack(kind: str, n: int, rng: np.random.Generator) -> np.ndarray:
-    # Attack means sit close enough to benign traffic (esp. the busy camera/hub
-    # devices) that the classes overlap; detection is a multi-feature decision,
-    # not a single obvious threshold.
+    # Some attack traffic looks like normal traffic from busy devices. The
+    # detector must use several values instead of one limit.
     if kind == "flood":
         base = np.array([260, 180, 3, 0.18, 0.15, 0.90])
         std = np.array([110, 70, 2.0, 0.08, 0.10, 0.07])
@@ -113,7 +92,7 @@ def make_dataset(
         n_attack = int(n_per_device * attack_fraction)
         n_benign = n_per_device - n_attack
         benign = _sample_benign(profile, n_benign, rng, drift=drift)
-        # split attacks between flood and scan
+        # Split the attacks between floods and scans.
         n_flood = n_attack // 2
         attack = np.vstack([
             _sample_attack("flood", n_flood, rng),

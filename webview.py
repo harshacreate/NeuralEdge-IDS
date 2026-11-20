@@ -1,9 +1,7 @@
-"""NeuralEdge-IDS training dashboard built with Flask.
-
-Lets you adjust concept drift, attack rate, federated rounds and device dropout,
-then trains a centralized and a federated detector and compares them:
-detection/false-alarm/F1, communication cost, confusion matrices, per-device
-results and a live chart. Everything runs on synthetic IoT traffic.
+"""A Flask dashboard for the IoT traffic experiments. Change how normal traffic shifts, the
+attack rate, training rounds, and device drop rate. The page compares the shared model with
+the model trained across devices, including detection scores, false alarms, traffic sent,
+and per-device results. It uses made-up traffic.
 """
 
 from __future__ import annotations

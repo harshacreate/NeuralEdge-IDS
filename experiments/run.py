@@ -1,10 +1,6 @@
-"""Compare centralized vs federated IoT intrusion detection, in-distribution and
-under concept drift, and report detection quality, false alarms, and comm cost.
-
-Usage:
-  python -m experiments.run                 # printed report
-  python -m experiments.run --json          # JSON
-  python -m experiments.run --plot          # also write plots to out/
+"""Compare one shared IoT threat detector with one trained across devices. The script reports
+how each works on sample traffic and when normal traffic changes. Run python -m
+experiments.run for a report, add --json for JSON, or add --plot to save charts in out/.
 """
 
 from __future__ import annotations
@@ -27,20 +23,20 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def run(seed: int = 0) -> Dict:
-    # In-distribution data.
+    # Sample traffic with the same pattern as the training data.
     full = make_dataset(n_per_device=500, attack_fraction=0.3, drift=0.0, seed=seed)
     train, test = train_test_split(full, test_frac=0.25, seed=seed + 1)
 
-    # A drifted test set: benign baselines have shifted (firmware/behaviour change).
+    # Test traffic after normal device behaviour has changed.
     drift_test = make_dataset(n_per_device=250, attack_fraction=0.3, drift=0.6, seed=seed + 99)
 
-    # --- Centralized ---
+    # Train one model on all device data.
     cen = train_centralized(train)
     cen_id = evaluate.score(test.y, cen.predict(test.X))
     cen_drift = evaluate.score(drift_test.y, cen.predict(drift_test.X))
     cen_cost = centralized_comm_cost(train)
 
-    # --- Federated (non-IID: one shard per device) ---
+    # Train across devices, keeping each device's data separate.
     shards = partition_by_device(train)
     fed = train_federated(shards, rounds=25, local_epochs=20)
     fed_id = evaluate.score(test.y, fed.model.predict(test.X))

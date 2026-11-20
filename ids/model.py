@@ -1,9 +1,6 @@
-"""A small logistic-regression detector implemented in numpy.
-
-Kept deliberately simple so that (a) it trains in milliseconds and (b) model
-parameters are a flat vector, which makes federated averaging a one-liner.
-Standardization statistics travel with the model so a device can score traffic
-without re-fitting the scaler.
+"""A small logistic regression detector written with NumPy. The model values use one flat list
+so FedAvg can average them. The scaling values are saved with the model so a device can
+score traffic without fitting new scaling values.
 """
 
 from __future__ import annotations
@@ -31,10 +28,8 @@ class Scaler:
 
 
 def _linear(X: np.ndarray, w: np.ndarray, b: float) -> np.ndarray:
-    # numpy 2.x on some macOS BLAS backends raises spurious FP-exception
-    # warnings from matmul (e.g. "divide by zero" even when a weight is 0).
-    # These are hardware-flag artifacts, not real numeric errors, so the
-    # matmul is evaluated with FP warnings suppressed.
+    # Some NumPy builds on macOS show floating-point warnings during matrix
+    # math even when the result is okay. Hide those warnings here.
     with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
         return X @ w + b
 
@@ -51,7 +46,7 @@ class LogisticIDS:
         self.l2 = l2
         self.scaler: Optional[Scaler] = None
 
-    # --- parameter vector helpers (used by FedAvg) ---
+    # Parameter helpers used by FedAvg.
     @property
     def params(self) -> np.ndarray:
         return np.concatenate([self.w, [self.b]])
@@ -63,7 +58,7 @@ class LogisticIDS:
     def attach_scaler(self, scaler: Scaler) -> None:
         self.scaler = scaler
 
-    # --- training ---
+    # Training.
     def fit(self, X: np.ndarray, y: np.ndarray, epochs: int = 300, lr: float = 0.2,
             scaler: Optional[Scaler] = None) -> "LogisticIDS":
         self.scaler = scaler or Scaler.fit(X)
@@ -94,7 +89,7 @@ class LogisticIDS:
             self.b -= lr * err.mean()
         return self.params
 
-    # --- inference ---
+    # Prediction.
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         assert self.scaler is not None, "model has no scaler"
         Xs = self.scaler.transform(X)
