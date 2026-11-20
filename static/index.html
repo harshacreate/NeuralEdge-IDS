@@ -110,15 +110,15 @@ function render(r){
   const pd=r.per_device.map(d=>`<tr><td>${d.device}</td><td>${d.n}</td>
      <td><div class="bar" style="width:${Math.round(d.detection_rate*100)}%"></div></td>
      <td>${(d.detection_rate).toFixed(2)}</td><td>${(d.false_alarm_rate).toFixed(2)}</td></tr>`).join('');
-  const drop = r.dropped_devices.length? `<span class="muted"> · dropped: ${r.dropped_devices.join(', ')}</span>`:'';
+  const drop = r.dropped_devices.length? `<span class="muted"> · left out: ${r.dropped_devices.join(', ')}</span>`:'';
   $('out').innerHTML=`
     <div class="tiles">${tiles}</div>
     <h2>Compare both training methods</h2>
     <div class="glass"><img src="data:image/png;base64,${r.chart}" alt="comparison"></div>
     <h2>Detailed results on the usual test data</h2>
     <div class="row2">
-      <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#c4b5fd">Centralized</div>${cm(r.confusion.centralized)}</div>
-      <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#67e8f9">Federated</div>${cm(r.confusion.federated)}</div>
+      <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#c4b5fd">One model</div>${cm(r.confusion.centralized)}</div>
+      <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#67e8f9">Shared model</div>${cm(r.confusion.federated)}</div>
     </div>
     <h2>Results for each device — shared model (${r.rounds} rounds)${drop}</h2>
     <div class="glass"><table><tr><th>Device</th><th>Examples</th><th>Attacks found</th><th>Found rate</th><th>Wrong alert rate</th></tr>${pd}</table></div>`;
