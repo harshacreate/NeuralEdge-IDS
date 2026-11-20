@@ -120,7 +120,7 @@ function render(r){
       <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#c4b5fd">One model</div>${cm(r.confusion.centralized)}</div>
       <div class="glass"><div class="muted" style="margin-bottom:10px;font-weight:700;color:#67e8f9">Shared model</div>${cm(r.confusion.federated)}</div>
     </div>
-    <h2>Results for each device — shared model (${r.rounds} rounds)${drop}</h2>
+    <h2>Results for each device with the shared model (${r.rounds} rounds)${drop}</h2>
     <div class="glass"><table><tr><th>Device</th><th>Examples</th><th>Attacks found</th><th>Found rate</th><th>Wrong alert rate</th></tr>${pd}</table></div>`;
 }
 </script>
