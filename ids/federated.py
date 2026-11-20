@@ -35,7 +35,7 @@ class FedResult:
 def agreed_scaler() -> Scaler:
     """The pre-agreed normalization shared with every device in advance.
 
-    No raw feature rows are pooled to build this -- it comes from published domain
+    No raw feature rows are pooled to build this. It comes from published domain
     ranges (`AGREED_SCALER_MEAN/STD`). That is the honest choice for a federated
     setup: the whole point is that raw data never leaves a device, so the scaler
     cannot be fit by gathering everyone's rows on a server.

@@ -110,7 +110,7 @@ function render(r){
   const pd=r.per_device.map(d=>`<tr><td>${d.device}</td><td>${d.n}</td>
      <td><div class="bar" style="width:${Math.round(d.detection_rate*100)}%"></div></td>
      <td>${(d.detection_rate).toFixed(2)}</td><td>${(d.false_alarm_rate).toFixed(2)}</td></tr>`).join('');
-  const drop = r.dropped_devices.length? `<span class="muted"> · left out: ${r.dropped_devices.join(', ')}</span>`:'';
+  const drop = r.dropped_devices.length? `<span class="muted">, left out: ${r.dropped_devices.join(', ')}</span>`:'';
   $('out').innerHTML=`
     <div class="tiles">${tiles}</div>
     <h2>Compare both training methods</h2>

@@ -1,7 +1,7 @@
 """A small logistic-regression detector implemented in numpy.
 
 Kept deliberately simple so that (a) it trains in milliseconds and (b) model
-*parameters are a flat vector*, which makes federated averaging a one-liner.
+parameters are a flat vector, which makes federated averaging a one-liner.
 Standardization statistics travel with the model so a device can score traffic
 without re-fitting the scaler.
 """

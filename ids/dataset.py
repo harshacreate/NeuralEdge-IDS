@@ -1,8 +1,8 @@
 """Synthetic IoT network-traffic generator.
 
 Each record is a short window of flow statistics for one device. Devices have
-*different benign baselines* (a camera streams; a lock is mostly idle), which
-makes the data naturally non-IID across devices -- the realistic hard case for
+different normal patterns (a camera streams; a lock is mostly idle), which
+makes the data differ across devices. This is the hard case for
 federated learning.
 
 Attacks are injected as two families:
@@ -48,7 +48,7 @@ AGREED_SCALER_STD = np.array([100.0, 310.0, 8.5, 0.17, 1.2, 0.2])
 
 # Per-device benign baselines: (mean, std) per feature.
 # Spreads are wide enough that benign traffic overlaps the attack region in some
-# features, so no single threshold separates the classes -- the detector has to
+# features, so no single limit separates the classes. The detector has to
 # combine features, and the centralized/federated gap becomes visible.
 DEVICE_PROFILES: Dict[str, np.ndarray] = {
     # packet_rate, mean_payload, uniq_ports, failed_ratio, ia_var, outbound

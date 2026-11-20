@@ -1,4 +1,4 @@
-"""NeuralEdge-IDS — interactive federated-learning dashboard (Flask).
+"""NeuralEdge-IDS training dashboard built with Flask.
 
 Lets you adjust concept drift, attack rate, federated rounds and device dropout,
 then trains a centralized and a federated detector and compares them:
