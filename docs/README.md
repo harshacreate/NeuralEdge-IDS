@@ -1,11 +1,8 @@
-# Project documentation
+# Project files
 
-The [README](../README.md) has the quick summary, setup instructions, results, and limitations.
+- [Project overview](PROJECT_OVERVIEW.md)
+- [Learning guide](LEARNING_GUIDE.md)
+- [Run and read the project](PROJECT_WALKTHROUGH.md)
+- The dashboard image is in the screenshots folder.
 
-- [Project overview](PROJECT_OVERVIEW.md) — scope and system design.
-- [Learning guide](LEARNING_GUIDE.md) — concepts behind the project.
-- [Project walkthrough](PROJECT_WALKTHROUGH.md) — setup, code map, and run instructions.
-
-## Media
-
-- `screenshots/` contains the dashboard image used in the README.
+The main README has the quick start, sample results, and limits.

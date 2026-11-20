@@ -1,41 +1,21 @@
-# NeuralEdge-IDS — Project Overview
+# NeuralEdge-IDS project overview
 
-**Federated IoT Intrusion Detection Under Concept Drift**
-Project overview
+NeuralEdge-IDS compares two ways to train a small network threat detector with made-up IoT traffic.
 
-## Project summary
+## What it does
 
-NeuralEdge-IDS studies how a machine-learning intrusion detector behaves when the
-world doesn't stay still: when device behaviour drifts over time, and when training
-data is split across devices instead of pooled. It trains a detector two ways — a
-single centralized model and a federated model (FedAvg) — and reports detection
-quality, false alarms and communication cost, in-distribution and under drift. All
-on synthetic, non-IID IoT traffic.
+The sample data represents cameras, thermostats, locks, and hubs. One model trains on all the data. The other trains on separate device data and combines the results.
 
-## Main features
+The project checks how both methods work on normal sample traffic and after normal traffic changes. It also counts the numbers sent during training.
 
-- **Interactive dashboard (web UI):** sliders for concept drift, attack rate,
-  federated rounds and dropped devices; retrain and compare on demand.
-- **Centralized vs federated:** detection rate, false-alarm rate and F1 by
-  condition, shown as a live chart.
-- **Confusion matrices:** TP / FP / FN / TN for both models on the in-distribution
-  test set.
-- **Per-device results:** detection and false-alarm rate for each device type,
-  including the effect of dropping devices from the federation.
-- **Communication cost:** federated moves a fraction of the data — shown as a ratio.
+## Run it
 
-## Run with Docker
-
-```sh
-docker compose up --build -d      # then open http://localhost:8094
-docker compose ps
-docker compose down
+```bash
+docker compose up --build
 ```
 
-Binds to `127.0.0.1` only, non-root, dropped capabilities.
+Open http://127.0.0.1:8094.
 
-## Honest caveat
+## Limits
 
-This is a **simulation** of federated training (pre-agreed scaler; no raw-data
-pooling). Federated learning alone does not guarantee privacy — model updates can
-still leak information, which this project does not attempt to prevent.
+The traffic is made up and the feature set is small. All device types appear in both the training and test data. Sending model updates does not guarantee privacy.
