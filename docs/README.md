@@ -1,4 +1,4 @@
-# Project files
+Project files
 
 - [Project overview](PROJECT_OVERVIEW.md)
 - [Learning guide](LEARNING_GUIDE.md)
