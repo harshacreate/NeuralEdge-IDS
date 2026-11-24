@@ -14,12 +14,13 @@ Results
 
 These results come from one run with a fixed seed.
 
-| Model and test | Detection rate | False alert rate | F1 |
-|---|---:|---:|---:|
-| One model, normal test data | 0.979 | 0.000 | 0.989 |
-| One model, changed traffic | 0.993 | 0.060 | 0.931 |
-| Combined model, normal test data | 0.979 | 0.000 | 0.989 |
-| Combined model, changed traffic | 0.993 | 0.067 | 0.924 |
+Model and test: One model, normal test data; Detection rate: 0.979; False alert rate: 0.000; F1: 0.989
+
+Model and test: One model, changed traffic; Detection rate: 0.993; False alert rate: 0.060; F1: 0.931
+
+Model and test: Combined model, normal test data; Detection rate: 0.979; False alert rate: 0.000; F1: 0.989
+
+Model and test: Combined model, changed traffic; Detection rate: 0.993; False alert rate: 0.067; F1: 0.924
 
 The combined model sent 1,400 numbers during training. The one-model setup counted 9,000. This is only a count of numbers, not total network use. The combined method does not guarantee privacy.
 

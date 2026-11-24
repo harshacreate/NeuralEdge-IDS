@@ -25,13 +25,19 @@ The plot command saves a chart in the output folder.
 
 Main files
 
-- `ids/dataset.py` makes sample traffic for each device type.
-- `ids/model.py` has the small classifier.
-- `ids/centralized.py` trains one model on all data.
-- `ids/federated.py` trains on separate device data and combines model updates.
-- `ids/evaluate.py` calculates the scores.
-- `experiments/run.py` runs both methods and prints the results.
-- `static/index.html` contains the dashboard.
+`ids/dataset.py` makes sample traffic for each device type.
+
+`ids/model.py` has the small classifier.
+
+`ids/centralized.py` trains one model on all data.
+
+`ids/federated.py` trains on separate device data and combines model updates.
+
+`ids/evaluate.py` calculates the scores.
+
+`experiments/run.py` runs both methods and prints the results.
+
+`static/index.html` contains the dashboard.
 
 Read the results
 
